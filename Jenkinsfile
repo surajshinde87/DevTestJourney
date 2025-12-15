@@ -14,7 +14,7 @@ pipeline {
             steps {
                 echo 'Cleaning project...'
                 dir('day9') {
-                    bat 'mvn clean'
+                    sh 'mvn clean'
                 }
             }
         }
@@ -23,7 +23,7 @@ pipeline {
             steps {
                 echo 'Running JUnit + Mockito tests...'
                 dir('day9') {
-                    bat 'mvn test'
+                    sh 'mvn test'
                 }
             }
         }
@@ -32,7 +32,7 @@ pipeline {
             steps {
                 echo 'Packaging application...'
                 dir('day9') {
-                    bat 'mvn package'
+                    sh 'mvn package'
                 }
             }
         }
