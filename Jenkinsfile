@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'maven:3.9.9-eclipse-temurin-17'
-            args '-v /root/.m2:/root/.m2'
-        }
-    }
+    agent any
 
     stages {
 
@@ -17,27 +12,24 @@ pipeline {
 
         stage('Clean') {
             steps {
-                echo 'Cleaning project...'
                 dir('day9') {
-                    sh 'mvn clean'
+                    sh './mvnw clean'
                 }
             }
         }
 
         stage('Test') {
             steps {
-                echo 'Running JUnit + Mockito tests...'
                 dir('day9') {
-                    sh 'mvn test'
+                    sh './mvnw test'
                 }
             }
         }
 
         stage('Package') {
             steps {
-                echo 'Packaging application...'
                 dir('day9') {
-                    sh 'mvn package'
+                    sh './mvnw package'
                 }
             }
         }
