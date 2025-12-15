@@ -12,7 +12,7 @@ pipeline {
 
         stage('Clean') {
             steps {
-                dir('day9') {
+                dir('day7') {
                     sh './mvnw clean'
                 }
             }
@@ -20,7 +20,7 @@ pipeline {
 
         stage('Test') {
             steps {
-                dir('day9') {
+                dir('day7') {
                     sh './mvnw test'
                 }
             }
@@ -28,7 +28,7 @@ pipeline {
 
         stage('Package') {
             steps {
-                dir('day9') {
+                dir('day7') {
                     sh './mvnw package'
                 }
             }
