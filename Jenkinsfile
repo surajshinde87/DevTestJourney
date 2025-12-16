@@ -33,14 +33,29 @@ pipeline {
                 }
             }
         }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    dir('day7') {
+                        sh '''
+                        ./mvnw sonar:sonar \
+                        -Dsonar.projectKey=DevTestJourney-Day7 \
+                        -Dsonar.projectName=DevTestJourney-Day7 \
+                        -Dsonar.host.url=http://sonarqube:9000
+                        '''
+                    }
+                }
+            }
+        }
     }
 
     post {
         success {
-            echo 'CI SUCCESS: All tests passed!'
+            echo 'CI SUCCESS: Build, Tests & SonarQube Analysis passed!'
         }
         failure {
-            echo 'CI FAILED: Fix failing tests'
+            echo 'CI FAILED: Fix failing build, tests, or quality issues'
         }
     }
 }
