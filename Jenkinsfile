@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     environment {
-        // SonarQube project details
-        SONAR_PROJECT_KEY = 'First-project'
+        SONAR_PROJECT_KEY  = 'First-project'
         SONAR_PROJECT_NAME = 'First-project'
+        DOCKER_IMAGE       = 'surajshinde/day7-app'
     }
 
     stages {
@@ -18,7 +18,6 @@ pipeline {
 
         stage('Clean') {
             steps {
-                echo 'Cleaning project...'
                 dir('day7') {
                     sh './mvnw clean'
                 }
@@ -27,16 +26,19 @@ pipeline {
 
         stage('Test') {
             steps {
-                echo 'Running unit tests...'
                 dir('day7') {
                     sh './mvnw test'
+                }
+            }
+            post {
+                always {
+                    junit 'day7/target/surefire-reports/*.xml'
                 }
             }
         }
 
         stage('Package') {
             steps {
-                echo 'Packaging application...'
                 dir('day7') {
                     sh './mvnw package'
                 }
@@ -45,17 +47,45 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                echo 'Running SonarQube analysis...'
                 withSonarQubeEnv('SonarQube') {
                     dir('day7') {
                         sh """
                         ./mvnw sonar:sonar \
                         -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                        -Dsonar.projectName=${SONAR_PROJECT_NAME} \
-                        -Dsonar.sources=src/main/java \
-                        -Dsonar.host.url=http://sonarqube:9000
+                        -Dsonar.projectName=${SONAR_PROJECT_NAME}
                         """
                     }
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                dir('day7') {
+                    sh 'docker build -t $DOCKER_IMAGE .'
+                }
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '''
+                    echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                    docker push $DOCKER_IMAGE
+                    '''
                 }
             }
         }
@@ -63,10 +93,10 @@ pipeline {
 
     post {
         success {
-            echo 'CI SUCCESS: Build, Tests & SonarQube Analysis completed!'
+            echo 'CI + Quality Gate + Docker CD SUCCESS'
         }
         failure {
-            echo 'CI FAILED: Fix build, test, or Sonar issues'
+            echo 'PIPELINE FAILED – Fix issues'
         }
     }
 }
